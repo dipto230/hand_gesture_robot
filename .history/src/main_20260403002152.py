@@ -21,21 +21,9 @@ def connect_arduino():
             except:
                 pass
         
-        arduino = serial.Serial(PORT, BAUD, timeout=2)
-        time.sleep(2)
-        
-        # Wait for READY signal
-        max_attempts = 10
-        while max_attempts > 0:
-            if arduino.in_waiting:
-                response = arduino.readline().decode().strip()
-                if response == "READY":
-                    print(f"[INFO] ✅ Arduino connected on {PORT}")
-                    return True
-            time.sleep(0.1)
-            max_attempts -= 1
-        
-        print(f"[INFO] ✅ Arduino connected on {PORT} (no response)")
+        arduino = serial.Serial(PORT, BAUD, timeout=1)
+        time.sleep(1)
+        print(f"[INFO] ✅ Arduino connected on {PORT}")
         return True
     except Exception as e:
         arduino = None
@@ -124,28 +112,14 @@ while True:
 
                     print("[STABLE] 👉", stable_output)
 
-                    # 📤 Send to Arduino with retry
+                    # 📤 Send to Arduino
                     if arduino:
                         try:
                             data = ','.join(map(str, stable_output)) + '\n'
                             arduino.write(data.encode())
-                            arduino.flush()
-                            time.sleep(0.05)
-                            serial_error_count = 0
                         except Exception as e:
-                            serial_error_count += 1
-                            print(f"[ERROR] ❌ Serial write failed! (attempt {serial_error_count})")
-                            print(f"     {type(e).__name__}: {e}")
-                            
-                            # Auto-reconnect after 3 failures
-                            if serial_error_count >= 3:
-                                print("[INFO] 🔄 Attempting to reconnect Arduino...")
-                                if connect_arduino():
-                                    serial_error_count = 0
-                    elif serial_error_count == 0:
-                        # Try to connect if arduino was None
-                        print("[INFO] ⚠️  Arduino not connected. Attempting to reconnect...")
-                        connect_arduino()
+                            print("[ERROR] ❌ Serial write failed!")
+                            print(e)
 
                 # 🖥️ Display
                 text = f"T I M R P: {stable_output}"
