@@ -146,7 +146,6 @@ while True:
                     if arduino:
                         try:
                             data = ','.join(map(str, stable_output)) + '\n'
-                            print(f"[DEBUG] Sending: {data.strip()}")
                             arduino.write(data.encode())
                             arduino.flush()
                             time.sleep(0.05)
